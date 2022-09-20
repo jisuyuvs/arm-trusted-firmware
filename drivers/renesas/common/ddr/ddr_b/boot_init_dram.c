@@ -799,6 +799,12 @@ static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 	adr = DDR_REGDEF_ADR(regdef);
 	len = DDR_REGDEF_LEN(regdef);
 	lsb = DDR_REGDEF_LSB(regdef);
+	/* 220920 variable check */
+	printf("regdef= %x\n", regdef);
+	printf("adr= %x\n", adr);
+	printf("len= %x\n", len);
+	printf("lsb= %x\n", lsb);
+
 	if (len == 0x20)
 		msk = 0xffffffff;
 	else
@@ -809,9 +815,13 @@ static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 	} else {
 		adrmsk = 0x7f;
 	}
+	printf("msk= %x\n", msk);
+	printf("adrmsk= %x\n", adrmsk);
 
 	tmp = tbl[adr & adrmsk];
+	printf("tmp1= %x\n", tmp);
 	tmp = (tmp & (~msk)) | ((val << lsb) & msk);
+	printf("tmp2= %x\n", tmp);
 	tbl[adr & adrmsk] = tmp;
 }
 
