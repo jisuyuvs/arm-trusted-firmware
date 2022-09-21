@@ -255,6 +255,8 @@ static uint32_t ddr_getval_ach(uint32_t regdef, uint32_t *p);
 static uint32_t ddr_getval_ach_as(uint32_t regdef, uint32_t *p);
 static void _tblcopy(uint32_t *to, const uint32_t *from, uint32_t size);
 static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val);
+/* 220920 variable check */
+static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val);
 static uint32_t ddrtbl_getval(uint32_t *tbl, uint32_t _regdef);
 static uint32_t ddrphy_regif_chk(void);
 static inline void ddrphy_regif_idle(void);
@@ -799,7 +801,38 @@ static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 	adr = DDR_REGDEF_ADR(regdef);
 	len = DDR_REGDEF_LEN(regdef);
 	lsb = DDR_REGDEF_LSB(regdef);
-	/* 220920 variable check */
+
+	if (len == 0x20)
+		msk = 0xffffffff;
+	else
+		msk = ((1U << len) - 1) << lsb;
+
+	if (adr < 0x400) {
+		adrmsk = 0xff;
+	} else {
+		adrmsk = 0x7f;
+	}
+
+	tmp = tbl[adr & adrmsk];
+	tmp = (tmp & (~msk)) | ((val << lsb) & msk);
+	tbl[adr & adrmsk] = tmp;
+}
+
+/* 220920 variable check */
+static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val)
+{
+	uint32_t adr;
+	uint32_t lsb;
+	uint32_t len;
+	uint32_t msk;
+	uint32_t tmp;
+	uint32_t adrmsk;
+	uint32_t regdef;
+
+	regdef = ddr_regdef(_regdef);
+	adr = DDR_REGDEF_ADR(regdef);
+	len = DDR_REGDEF_LEN(regdef);
+	lsb = DDR_REGDEF_LSB(regdef);
 	printf("regdef= %x\n", regdef);
 	printf("adr= %x\n", adr);
 	printf("len= %x\n", len);
@@ -1433,11 +1466,13 @@ static void ddrtbl_load(void)
 #ifdef _def_LPDDR4_ODT
 	for (i = 0; i < 2; i++) {
 		for (csab = 0; csab < CSAB_CNT; csab++) {
-			ddrtbl_setval(_cnf_DDR_PI_REGSET,
+			/* 220920 variable check */
+			ddrtbl_setval_check(_cnf_DDR_PI_REGSET,
 				      reg_pi_mr11_data_fx_csx[i][csab],
 				      _def_LPDDR4_ODT);
 		}
 	}
+	printf("ifdef LPDDR4_ODT\n");
 #endif /* _def_LPDDR4_ODT */
 
 #ifdef _def_LPDDR4_VREFCA
@@ -1573,11 +1608,12 @@ static void ddrtbl_load(void)
 #ifndef _def_LPDDR4_ODT
 		for (i = 0; i < 2; i++) {
 			for (csab = 0; csab < CSAB_CNT; csab++) {
-				ddrtbl_setval(_cnf_DDR_PI_REGSET,
+				ddrtbl_setval_check(_cnf_DDR_PI_REGSET,
 					      reg_pi_mr11_data_fx_csx[i][csab],
 					      0x66);
 			}
 		}
+		printf("ifndef LPDDR4_ODT\n");
 #endif/* _def_LPDDR4_ODT */
 	} else {
 		ddr_phycaslice = 0;
