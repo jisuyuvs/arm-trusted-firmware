@@ -3059,7 +3059,7 @@ static uint32_t init_ddr(void)
 
 	ddrtbl_load();
 	/* 220920 variable check */
-	printf("_def_LPDDR4_ODT= %x\n",_def_LPDDR4_ODT)
+	printf("_def_LPDDR4_ODT= %x\n",_def_LPDDR4_ODT);
 
 	/* configure ddrphy registers */
 	ddr_config();
