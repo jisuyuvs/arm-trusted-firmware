@@ -709,6 +709,9 @@ static void init_ddr_d3_1600(void)
 
 int32_t rcar_dram_init(void)
 {
+	/* 220920 variable check */
+	printf("Called ddr_init_d3.c rcar_dram_init");
+	/* */
 	uint32_t reg;
 	uint32_t ddr_mbps;
 

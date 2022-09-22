@@ -4192,6 +4192,9 @@ static void adjust_wpath_latency(void)
 /* DDR Initialize entry */
 int32_t rcar_dram_init(void)
 {
+	/* 220920 variable check */
+	printf("Called boot_init_dram.c rcar_dram_init");
+	/* */
 	uint32_t ch, cs;
 	uint32_t data_l;
 	uint32_t bus_mbps, bus_mbpsdiv;
