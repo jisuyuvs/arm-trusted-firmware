@@ -1643,6 +1643,8 @@ static void ddrtbl_load(void)
 	for (i = 0; i < DDR_PI_REGSET_NUM; i++) {
 		reg_ddrphy_write_a(adr + i, _cnf_DDR_PI_REGSET[i]);
 	}
+	/* 220920 variable check */
+	printf("_def_LPDDR4_ODT= %x\n",_def_LPDDR4_ODT);
 }
 
 /* CONFIGURE DDR REGISTERS */
@@ -3056,10 +3058,7 @@ static uint32_t init_ddr(void)
 	dbsc_regset_pre();
 
 	/* load ddrphy registers */
-
 	ddrtbl_load();
-	/* 220920 variable check */
-	printf("_def_LPDDR4_ODT= %x\n",_def_LPDDR4_ODT);
 
 	/* configure ddrphy registers */
 	ddr_config();
