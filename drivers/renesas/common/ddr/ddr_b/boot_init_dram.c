@@ -1278,6 +1278,8 @@ static void regif_pll_wa(void)
 /* load table data into DDR registers */
 static void ddrtbl_load(void)
 {
+	/* 220920 variable check */
+	printf("ddrtbl_load\n");
 	uint32_t i;
 	uint32_t slice;
 	uint32_t csab;
@@ -1643,8 +1645,6 @@ static void ddrtbl_load(void)
 	for (i = 0; i < DDR_PI_REGSET_NUM; i++) {
 		reg_ddrphy_write_a(adr + i, _cnf_DDR_PI_REGSET[i]);
 	}
-	/* 220920 variable check */
-	printf("_def_LPDDR4_ODT= %x\n",_def_LPDDR4_ODT);
 }
 
 /* CONFIGURE DDR REGISTERS */
@@ -3028,6 +3028,8 @@ static uint32_t pi_training_go(void)
 /* Initialize DDR */
 static uint32_t init_ddr(void)
 {
+	/* 220920 variable check */
+	printf("init_ddr\n");
 	int32_t i;
 	uint32_t data_l;
 	uint32_t phytrainingok;
@@ -4191,9 +4193,6 @@ static void adjust_wpath_latency(void)
 /* DDR Initialize entry */
 int32_t rcar_dram_init(void)
 {
-	/* 220920 variable check */
-	printf("Called boot_init_dram.c rcar_dram_init");
-	/* */
 	uint32_t ch, cs;
 	uint32_t data_l;
 	uint32_t bus_mbps, bus_mbpsdiv;

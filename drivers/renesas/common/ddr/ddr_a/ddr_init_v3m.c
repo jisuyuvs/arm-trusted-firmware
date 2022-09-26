@@ -335,8 +335,5 @@ static uint32_t init_ddr_v3m_1600(void)
 
 int32_t rcar_dram_init(void)
 {
-	/* 220920 variable check */
-	printf("Called ddr_init_v3m.c rcar_dram_init");
-	/* */
 	return init_ddr_v3m_1600();
 }

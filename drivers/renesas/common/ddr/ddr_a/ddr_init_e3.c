@@ -1679,9 +1679,6 @@ static uint32_t recovery_from_backup_mode(uint32_t ddr_backup)
  */
 int32_t rcar_dram_init(void)
 {
-	/* 220920 variable check */
-	printf("Called ddr_init_e3.c rcar_dram_init");
-	/* */
 	uint32_t dataL;
 	uint32_t failcount;
 	uint32_t md = 0;
