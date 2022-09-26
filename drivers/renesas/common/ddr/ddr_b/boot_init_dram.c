@@ -2787,6 +2787,8 @@ static uint32_t set_term_code(void)
 /* DDR mode register setting */
 static void ddr_register_set(void)
 {
+	/* 220920 variable check */
+	printf("ddr_register_set\n");
 	int32_t fspwp;
 	uint32_t tmp;
 
@@ -2812,6 +2814,8 @@ static void ddr_register_set(void)
 		tmp =
 		    ddrtbl_getval(_cnf_DDR_PI_REGSET,
 				  reg_pi_mr11_data_fx_csx[fspwp][0]);
+		/* 220920 variable check */
+		printf("tmp= %x\n", tmp);
 		send_dbcmd(0x0e840b00 | tmp);
 
 		tmp =
