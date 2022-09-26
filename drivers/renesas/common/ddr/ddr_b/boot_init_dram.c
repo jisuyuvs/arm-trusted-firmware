@@ -258,6 +258,7 @@ static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val);
 /* 220920 variable check */
 static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val);
 static uint32_t ddrtbl_getval(uint32_t *tbl, uint32_t _regdef);
+static uint32_t ddrtbl_getval_check(uint32_t *tbl, uint32_t _regdef);
 static uint32_t ddrphy_regif_chk(void);
 static inline void ddrphy_regif_idle(void);
 static uint16_t _f_scale(uint32_t _ddr_mbps, uint32_t _ddr_mbpsdiv, uint32_t ps,
@@ -885,6 +886,47 @@ static uint32_t ddrtbl_getval(uint32_t *tbl, uint32_t _regdef)
 
 	tmp = tbl[adr & adrmsk];
 	tmp = (tmp >> lsb) & msk;
+
+	return tmp;
+}
+
+/* 220920 variable check */
+static uint32_t ddrtbl_getval_check(uint32_t *tbl, uint32_t _regdef)
+{
+	uint32_t adr;
+	uint32_t lsb;
+	uint32_t len;
+	uint32_t msk;
+	uint32_t tmp;
+	uint32_t adrmsk;
+	uint32_t regdef;
+
+	regdef = ddr_regdef(_regdef);
+	adr = DDR_REGDEF_ADR(regdef);
+	len = DDR_REGDEF_LEN(regdef);
+	lsb = DDR_REGDEF_LSB(regdef);
+	printf("regdef= %x\n", regdef);
+	printf("adr= %x\n", adr);
+	printf("len= %x\n", len);
+	printf("lsb= %x\n", lsb);
+
+	if (len == 0x20)
+		msk = 0xffffffff;
+	else
+		msk = ((1U << len) - 1);
+	printf("msk= %x\n", msk);
+
+	if (adr < 0x400) {
+		adrmsk = 0xff;
+	} else {
+		adrmsk = 0x7f;
+	}
+	printf("adrmsk= %x\n", adrmsk);
+
+	tmp = tbl[adr & adrmsk];
+	printf("tmp1= %x\n", tmp);
+	tmp = (tmp >> lsb) & msk;
+	printf("tmp2= %x\n", tmp);
 
 	return tmp;
 }
@@ -2812,7 +2854,8 @@ static void ddr_register_set(void)
 		send_dbcmd(0x0e840300 | tmp);
 
 		tmp =
-		    ddrtbl_getval(_cnf_DDR_PI_REGSET,
+			/* 220920 variable check */
+		    ddrtbl_getval_check(_cnf_DDR_PI_REGSET,
 				  reg_pi_mr11_data_fx_csx[fspwp][0]);
 		/* 220920 variable check */
 		printf("tmp= %x\n", tmp);
