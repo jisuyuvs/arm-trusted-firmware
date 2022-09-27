@@ -254,6 +254,8 @@ static uint32_t ddr_getval(uint32_t ch, uint32_t regdef);
 static uint32_t ddr_getval_ach(uint32_t regdef, uint32_t *p);
 static uint32_t ddr_getval_ach_as(uint32_t regdef, uint32_t *p);
 static void _tblcopy(uint32_t *to, const uint32_t *from, uint32_t size);
+/* 220920 variable check */
+static void _tblcopy_check(uint32_t *to, const uint32_t *from, uint32_t size);
 static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val);
 /* 220920 variable check */
 static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val);
@@ -785,6 +787,16 @@ static void _tblcopy(uint32_t *to, const uint32_t *from, uint32_t size)
 
 	for (i = 0; i < size; i++) {
 		to[i] = from[i];
+	}
+}
+/* 220920 variable check */
+static void _tblcopy_check(uint32_t *to, const uint32_t *from, uint32_t size)
+{
+	uint32_t i;
+
+	for (i = 0; i < size; i++) {
+		to[i] = from[i];
+		printf("tbl[%d]= %x\n", i, to[i]);
 	}
 }
 
@@ -1367,7 +1379,7 @@ static void ddrtbl_load(void)
 			_tblcopy(_cnf_DDR_PHY_ADR_G_REGSET,
 				 DDR_PHY_ADR_G_REGSET_H3,
 				 DDR_PHY_ADR_G_REGSET_NUM_H3);
-			_tblcopy(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3,
+			_tblcopy_ckeck(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3,
 				 DDR_PI_REGSET_NUM_H3);
 
 			DDR_PHY_SLICE_REGSET_OFS = DDR_PHY_SLICE_REGSET_OFS_H3;
@@ -1402,7 +1414,7 @@ static void ddrtbl_load(void)
 			_tblcopy(_cnf_DDR_PHY_ADR_G_REGSET,
 				 DDR_PHY_ADR_G_REGSET_H3VER2,
 				 DDR_PHY_ADR_G_REGSET_NUM_H3VER2);
-			_tblcopy(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3VER2,
+			_tblcopy_check(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3VER2,
 				 DDR_PI_REGSET_NUM_H3VER2);
 
 			DDR_PHY_SLICE_REGSET_OFS =
@@ -1439,7 +1451,7 @@ static void ddrtbl_load(void)
 			 DDR_PHY_ADR_I_REGSET_M3, DDR_PHY_ADR_I_REGSET_NUM_M3);
 		_tblcopy(_cnf_DDR_PHY_ADR_G_REGSET,
 			 DDR_PHY_ADR_G_REGSET_M3, DDR_PHY_ADR_G_REGSET_NUM_M3);
-		_tblcopy(_cnf_DDR_PI_REGSET,
+		_tblcopy_check(_cnf_DDR_PI_REGSET,
 			 DDR_PI_REGSET_M3, DDR_PI_REGSET_NUM_M3);
 
 		DDR_PHY_SLICE_REGSET_OFS = DDR_PHY_SLICE_REGSET_OFS_M3;
@@ -1470,7 +1482,7 @@ static void ddrtbl_load(void)
 			 DDR_PHY_ADR_I_REGSET_NUM_M3N);
 		_tblcopy(_cnf_DDR_PHY_ADR_G_REGSET, DDR_PHY_ADR_G_REGSET_M3N,
 			 DDR_PHY_ADR_G_REGSET_NUM_M3N);
-		_tblcopy(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_M3N,
+		_tblcopy_check(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_M3N,
 			 DDR_PI_REGSET_NUM_M3N);
 
 		DDR_PHY_SLICE_REGSET_OFS = DDR_PHY_SLICE_REGSET_OFS_M3N;
