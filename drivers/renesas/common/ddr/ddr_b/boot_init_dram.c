@@ -1379,7 +1379,7 @@ static void ddrtbl_load(void)
 			_tblcopy(_cnf_DDR_PHY_ADR_G_REGSET,
 				 DDR_PHY_ADR_G_REGSET_H3,
 				 DDR_PHY_ADR_G_REGSET_NUM_H3);
-			_tblcopy_ckeck(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3,
+			_tblcopy_check(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3,
 				 DDR_PI_REGSET_NUM_H3);
 
 			DDR_PHY_SLICE_REGSET_OFS = DDR_PHY_SLICE_REGSET_OFS_H3;
