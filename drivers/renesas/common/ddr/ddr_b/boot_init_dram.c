@@ -871,6 +871,7 @@ static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 	tmp = (tmp & (~msk)) | ((val << lsb) & msk);
 	printf("tmp2= %x\n", tmp);
 	tbl[adr & adrmsk] = tmp;
+	printf("\n");
 }
 
 static uint32_t ddrtbl_getval(uint32_t *tbl, uint32_t _regdef)
@@ -942,6 +943,7 @@ static uint32_t ddrtbl_getval_check(uint32_t *tbl, uint32_t _regdef)
 	printf("tmp1= %x\n", tmp);
 	tmp = (tmp >> lsb) & msk;
 	printf("tmp2= %x\n", tmp);
+	printf("\n");
 
 	return tmp;
 }
@@ -1335,8 +1337,6 @@ static void regif_pll_wa(void)
 /* load table data into DDR registers */
 static void ddrtbl_load(void)
 {
-	/* 220920 variable check */
-	printf("ddrtbl_load\n");
 	uint32_t i;
 	uint32_t slice;
 	uint32_t csab;
@@ -1417,7 +1417,7 @@ static void ddrtbl_load(void)
 			_tblcopy(_cnf_DDR_PHY_ADR_G_REGSET,
 				 DDR_PHY_ADR_G_REGSET_H3VER2,
 				 DDR_PHY_ADR_G_REGSET_NUM_H3VER2);
-			_tblcopy_check(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3VER2,
+			_tblcopy(_cnf_DDR_PI_REGSET, DDR_PI_REGSET_H3VER2,
 				 DDR_PI_REGSET_NUM_H3VER2);
 
 			DDR_PHY_SLICE_REGSET_OFS =
@@ -1525,13 +1525,11 @@ static void ddrtbl_load(void)
 #ifdef _def_LPDDR4_ODT
 	for (i = 0; i < 2; i++) {
 		for (csab = 0; csab < CSAB_CNT; csab++) {
-			/* 220920 variable check */
-			ddrtbl_setval_check(_cnf_DDR_PI_REGSET,
+			ddrtbl_setval(_cnf_DDR_PI_REGSET,
 				      reg_pi_mr11_data_fx_csx[i][csab],
 				      _def_LPDDR4_ODT);
 		}
 	}
-	printf("ifdef LPDDR4_ODT\n");
 #endif /* _def_LPDDR4_ODT */
 
 #ifdef _def_LPDDR4_VREFCA
@@ -1578,7 +1576,7 @@ static void ddrtbl_load(void)
 		ddrtbl_setval(_cnf_DDR_PHY_SLICE_REGSET,
 			      _reg_PHY_RDDATA_EN_OE_DLY, dataS - 2);
 	}
-	ddrtbl_setval_check(_cnf_DDR_PI_REGSET, _reg_PI_RDLAT_ADJ_F1, RL - dataS);
+	ddrtbl_setval(_cnf_DDR_PI_REGSET, _reg_PI_RDLAT_ADJ_F1, RL - dataS);
 
 	if (ddrtbl_getval
 	    (_cnf_DDR_PHY_SLICE_REGSET, _reg_PHY_WRITE_PATH_LAT_ADD)) {
@@ -1586,8 +1584,8 @@ static void ddrtbl_load(void)
 	} else {
 		data_l = WL;
 	}
-	ddrtbl_setval_check(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_ADJ_F1, data_l - 2);
-	ddrtbl_setval_check(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_F1, data_l);
+	ddrtbl_setval(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_ADJ_F1, data_l - 2);
+	ddrtbl_setval(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_F1, data_l);
 
 	if (board_cnf->dbi_en) {
 		ddrtbl_setval(_cnf_DDR_PHY_SLICE_REGSET, _reg_PHY_DBI_MODE,
@@ -1603,7 +1601,7 @@ static void ddrtbl_load(void)
 
 	tmp[0] = js1[js1_ind].MR1;
 	tmp[1] = js1[js1_ind].MR2;
-	data_l = ddrtbl_getval_check(_cnf_DDR_PI_REGSET, _reg_PI_MR3_DATA_F1_0);
+	data_l = ddrtbl_getval(_cnf_DDR_PI_REGSET, _reg_PI_MR3_DATA_F1_0);
 	if (board_cnf->dbi_en)
 		tmp[2] = data_l | 0xc0;
 	else
@@ -1611,11 +1609,11 @@ static void ddrtbl_load(void)
 
 	for (i = 0; i < 2; i++) {
 		for (csab = 0; csab < CSAB_CNT; csab++) {
-			ddrtbl_setval_check(_cnf_DDR_PI_REGSET,
+			ddrtbl_setval(_cnf_DDR_PI_REGSET,
 				      reg_pi_mr1_data_fx_csx[i][csab], tmp[0]);
-			ddrtbl_setval_check(_cnf_DDR_PI_REGSET,
+			ddrtbl_setval(_cnf_DDR_PI_REGSET,
 				      reg_pi_mr2_data_fx_csx[i][csab], tmp[1]);
-			ddrtbl_setval_check(_cnf_DDR_PI_REGSET,
+			ddrtbl_setval(_cnf_DDR_PI_REGSET,
 				      reg_pi_mr3_data_fx_csx[i][csab], tmp[2]);
 		}
 	}
@@ -1667,12 +1665,11 @@ static void ddrtbl_load(void)
 #ifndef _def_LPDDR4_ODT
 		for (i = 0; i < 2; i++) {
 			for (csab = 0; csab < CSAB_CNT; csab++) {
-				ddrtbl_setval_check(_cnf_DDR_PI_REGSET,
+				ddrtbl_setval(_cnf_DDR_PI_REGSET,
 					      reg_pi_mr11_data_fx_csx[i][csab],
 					      0x66);
 			}
 		}
-		printf("ifndef LPDDR4_ODT\n");
 #endif/* _def_LPDDR4_ODT */
 	} else {
 		ddr_phycaslice = 0;
@@ -2222,16 +2219,16 @@ static void dbsc_regset(void)
 
 	/* DBTR16 */
 	/* WDQL : tphy_wrlat + tphy_wrdata */
-	tmp[0] = ddrtbl_getval_check(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_F1);
+	tmp[0] = ddrtbl_getval(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_F1);
 	/* DQENLTNCY : tphy_wrlat = WL-2 : PHY_WRITE_PATH_LAT_ADD == 0
 	 *             tphy_wrlat = WL-3 : PHY_WRITE_PATH_LAT_ADD != 0
 	 */
-	tmp[1] = ddrtbl_getval_check(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_ADJ_F1);
+	tmp[1] = ddrtbl_getval(_cnf_DDR_PI_REGSET, _reg_PI_WRLAT_ADJ_F1);
 	/* DQL : tphy_rdlat + trdata_en */
 	/* it is not important for dbsc */
 	tmp[2] = RL + 16;
 	/* DQIENLTNCY : trdata_en */
-	tmp[3] = ddrtbl_getval_check(_cnf_DDR_PI_REGSET, _reg_PI_RDLAT_ADJ_F1) - 1;
+	tmp[3] = ddrtbl_getval(_cnf_DDR_PI_REGSET, _reg_PI_RDLAT_ADJ_F1) - 1;
 	mmio_write_32(DBSC_DBTR(16),
 		      (tmp[3] << 24) | (tmp[2] << 16) | (tmp[1] << 8) | tmp[0]);
 
@@ -2844,8 +2841,6 @@ static uint32_t set_term_code(void)
 /* DDR mode register setting */
 static void ddr_register_set(void)
 {
-	/* 220920 variable check */
-	printf("ddr_register_set\n");
 	int32_t fspwp;
 	uint32_t tmp;
 
@@ -2872,8 +2867,6 @@ static void ddr_register_set(void)
 			/* 220920 variable check */
 		    ddrtbl_getval_check(_cnf_DDR_PI_REGSET,
 				  reg_pi_mr11_data_fx_csx[fspwp][0]);
-		/* 220920 variable check */
-		printf("tmp= %x\n", tmp);
 		send_dbcmd(0x0e840b00 | tmp);
 
 		tmp =
@@ -3090,8 +3083,6 @@ static uint32_t pi_training_go(void)
 /* Initialize DDR */
 static uint32_t init_ddr(void)
 {
-	/* 220920 variable check */
-	printf("init_ddr\n");
 	int32_t i;
 	uint32_t data_l;
 	uint32_t phytrainingok;
