@@ -255,10 +255,10 @@ static uint32_t ddr_getval_ach(uint32_t regdef, uint32_t *p);
 static uint32_t ddr_getval_ach_as(uint32_t regdef, uint32_t *p);
 static void _tblcopy(uint32_t *to, const uint32_t *from, uint32_t size);
 /* 220920 variable check */
-static void _tblcopy_check(uint32_t *to, const uint32_t *from, uint32_t size);
+/*static void _tblcopy_check(uint32_t *to, const uint32_t *from, uint32_t size);*/
 static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val);
 /* 220920 variable check */
-static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val);
+/*static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val);*/
 static uint32_t ddrtbl_getval(uint32_t *tbl, uint32_t _regdef);
 /* 220920 variable check */
 static uint32_t ddrtbl_getval_check(uint32_t *tbl, uint32_t _regdef);
@@ -791,7 +791,7 @@ static void _tblcopy(uint32_t *to, const uint32_t *from, uint32_t size)
 	}
 }
 /* 220920 variable check */
-static void _tblcopy_check(uint32_t *to, const uint32_t *from, uint32_t size)
+/*static void _tblcopy_check(uint32_t *to, const uint32_t *from, uint32_t size)
 {
 	uint32_t i;
 
@@ -799,7 +799,7 @@ static void _tblcopy_check(uint32_t *to, const uint32_t *from, uint32_t size)
 		to[i] = from[i];
 		printf("tbl[%d]= %x\n", i, to[i]);
 	}
-}
+}*/
 
 static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 {
@@ -833,7 +833,7 @@ static void ddrtbl_setval(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 }
 
 /* 220920 variable check */
-static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val)
+/*static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 {
 	printf("ddrtbl_setval_check\n");
 	uint32_t adr;
@@ -872,7 +872,7 @@ static void ddrtbl_setval_check(uint32_t *tbl, uint32_t _regdef, uint32_t val)
 	printf("tmp2= %x\n", tmp);
 	tbl[adr & adrmsk] = tmp;
 	printf("\n");
-}
+}*/
 
 static uint32_t ddrtbl_getval(uint32_t *tbl, uint32_t _regdef)
 {
