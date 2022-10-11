@@ -230,6 +230,9 @@ static const uint32_t _reg_PHY_CLK_CACS_SLAVE_DELAY_X
 	_reg_PHY_GRP_SLAVE_DELAY_3
 };
 
+/* 220920 variable check */
+static inline void mmio_write_32_test(uintptr_t addr, uint32_t value);
+
 /* Prototypes */
 static inline uint32_t vch_nxt(uint32_t pos);
 static void cpg_write_32(uint32_t a, uint32_t v);
@@ -337,6 +340,13 @@ static void wdqdm_clr1(uint32_t ch, uint32_t ddr_csn);
 static uint32_t wdqdm_ana1(uint32_t ch, uint32_t ddr_csn);
 #endif/* DDR_FAST_INIT */
 
+/* 220920 variable check */
+static inline void mmio_write_32_test(uintptr_t addr, uint32_t value)
+{
+	printf("addr: %x, value: %x\n", addr, value);
+	*(volatile uint32_t*)addr = value;
+}
+
 /* macro for channel selection loop */
 static inline uint32_t vch_nxt(uint32_t pos)
 {
@@ -361,8 +371,8 @@ for (ch = 0; ch < DRAM_CH_CNT; ch++)
 /* clock settings, reset control */
 static void cpg_write_32(uint32_t a, uint32_t v)
 {
-	mmio_write_32(CPG_CPGWPR, ~v);
-	mmio_write_32(a, v);
+	mmio_write_32_test(CPG_CPGWPR, ~v);
+	mmio_write_32_test(a, v);
 }
 
 static void pll3_control(uint32_t high)
@@ -520,7 +530,7 @@ static void send_dbcmd(uint32_t cmd)
 {
 	/* dummy read */
 	wait_dbcmd();
-	mmio_write_32(DBSC_DBCMD, cmd);
+	mmio_write_32_test(DBSC_DBCMD, cmd);
 	dsb_sev();
 }
 
@@ -541,7 +551,7 @@ static uint32_t reg_ddrphy_read(uint32_t phyno, uint32_t regadd)
 	val = 0;
 	if ((prr_product != PRR_PRODUCT_M3N) &&
 	    (prr_product != PRR_PRODUCT_V3H)) {
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd);
 		dsb_sev();
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
@@ -555,20 +565,20 @@ static uint32_t reg_ddrphy_read(uint32_t phyno, uint32_t regadd)
 		}
 		(void)val;
 	} else {
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd | 0x00004000);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd | 0x00004000);
 		dsb_sev();
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) !=
 		       (regadd | 0x0000C000)) {
 			dsb_sev();
 		};
 		val = mmio_read_32(DBSC_DBPDRGA(phyno));
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
 			dsb_sev();
 		};
 		dsb_sev();
 
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
 			dsb_sev();
 		};
@@ -588,13 +598,13 @@ static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata)
 
 	if ((prr_product != PRR_PRODUCT_M3N) &&
 	    (prr_product != PRR_PRODUCT_V3H)) {
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd);
 		dsb_sev();
 		for (loop = 0; loop < loop_max; loop++) {
 			val = mmio_read_32(DBSC_DBPDRGA(phyno));
 			dsb_sev();
 		}
-		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
+		mmio_write_32_test(DBSC_DBPDRGD(phyno), regdata);
 		dsb_sev();
 
 		for (loop = 0; loop < loop_max; loop++) {
@@ -602,7 +612,7 @@ static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata)
 			dsb_sev();
 		}
 	} else {
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd);
 		dsb_sev();
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
@@ -610,21 +620,21 @@ static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata)
 		};
 		dsb_sev();
 
-		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
+		mmio_write_32_test(DBSC_DBPDRGD(phyno), regdata);
 		dsb_sev();
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) !=
 		       (regadd | 0x00008000)) {
 			dsb_sev();
 		};
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
 			dsb_sev();
 		};
 		dsb_sev();
 
-		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
+		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd);
 	}
 	(void)val;
 }
@@ -638,12 +648,12 @@ static void reg_ddrphy_write_a(uint32_t regadd, uint32_t regdata)
 	if ((prr_product != PRR_PRODUCT_M3N) &&
 	    (prr_product != PRR_PRODUCT_V3H)) {
 		foreach_vch(ch) {
-			mmio_write_32(DBSC_DBPDRGA(ch), regadd);
+			mmio_write_32_test(DBSC_DBPDRGA(ch), regadd);
 			dsb_sev();
 		}
 
 		foreach_vch(ch) {
-			mmio_write_32(DBSC_DBPDRGD(ch), regdata);
+			mmio_write_32_test(DBSC_DBPDRGD(ch), regdata);
 			dsb_sev();
 		}
 
@@ -1386,7 +1396,7 @@ static void regif_pll_wa(void)
 	 * init_start =0
 	 */
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBDFICNT(ch), 0x00000F10);
+	    mmio_write_32_test(DBSC_DBDFICNT(ch), 0x00000F10);
 	dsb_sev();
 
 	/* dbdficnt0:
@@ -1396,7 +1406,7 @@ static void regif_pll_wa(void)
 	 * init_start =1
 	 */
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBDFICNT(ch), 0x00000F11);
+	    mmio_write_32_test(DBSC_DBDFICNT(ch), 0x00000F11);
 	dsb_sev();
 
 	foreach_ech(ch)
@@ -2173,23 +2183,23 @@ static void dbsc_regset_pre(void)
 
 	/* PRIMARY SETTINGS */
 	/* LPDDR4, BL=16, DFI interface */
-	mmio_write_32(DBSC_DBKIND, 0x0000000a);
-	mmio_write_32(DBSC_DBBL, 0x00000002);
-	mmio_write_32(DBSC_DBPHYCONF0, 0x00000001);
+	mmio_write_32_test(DBSC_DBKIND, 0x0000000a);
+	mmio_write_32_test(DBSC_DBBL, 0x00000002);
+	mmio_write_32_test(DBSC_DBPHYCONF0, 0x00000001);
 
 	/* FREQRATIO=2 */
-	mmio_write_32(DBSC_DBSYSCONF1, 0x00000002);
+	mmio_write_32_test(DBSC_DBSYSCONF1, 0x00000002);
 
 	/* Chanel map (H3 Ver.1.x) */
 	if ((prr_product == PRR_PRODUCT_H3) && (prr_cut <= PRR_PRODUCT_11))
-		mmio_write_32(DBSC_DBSCHCNT1, 0x00001010);
+		mmio_write_32_test(DBSC_DBSCHCNT1, 0x00001010);
 
 	/* DRAM SIZE REGISTER:
 	 * set all ranks as density=0(4Gb) for PHY initialization
 	 */
 	foreach_vch(ch) {
 		for (csab = 0; csab < 4; csab++) {
-			mmio_write_32(DBSC_DBMEMCONF(ch, csab),
+			mmio_write_32_test(DBSC_DBMEMCONF(ch, csab),
 				      DBMEMCONF_REGD(0));
 		}
 	}
@@ -2207,7 +2217,7 @@ static void dbsc_regset_pre(void)
 					| ((board_cnf->ch[ch].dqs_swap & 0x3000)
 					   >> 6)) << (ch * 8));
 		}
-		mmio_write_32(DBSC_DBBSWAP, data_l);
+		mmio_write_32_test(DBSC_DBBSWAP, data_l);
 	}
 }
 
@@ -2233,61 +2243,61 @@ static void dbsc_regset(void)
 	}
 
 	/* DBTR0.CL  : RL */
-	mmio_write_32(DBSC_DBTR(0), RL);
+	mmio_write_32_test(DBSC_DBTR(0), RL);
 
 	/* DBTR1.CWL : WL */
-	mmio_write_32(DBSC_DBTR(1), WL);
+	mmio_write_32_test(DBSC_DBTR(1), WL);
 
 	/* DBTR2.AL  : 0 */
-	mmio_write_32(DBSC_DBTR(2), 0);
+	mmio_write_32_test(DBSC_DBTR(2), 0);
 
 	/* DBTR3.TRCD: tRCD */
-	mmio_write_32(DBSC_DBTR(3), js2[js2_trcd]);
+	mmio_write_32_test(DBSC_DBTR(3), js2[js2_trcd]);
 
 	/* DBTR4.TRPA,TRP: tRPab,tRPpb */
-	mmio_write_32(DBSC_DBTR(4), (js2[js2_trpab] << 16) | js2[js2_trppb]);
+	mmio_write_32_test(DBSC_DBTR(4), (js2[js2_trpab] << 16) | js2[js2_trppb]);
 
 	/* DBTR5.TRC : use tRCpb */
-	mmio_write_32(DBSC_DBTR(5), js2[js2_trcpb]);
+	mmio_write_32_test(DBSC_DBTR(5), js2[js2_trcpb]);
 
 	/* DBTR6.TRAS : tRAS */
-	mmio_write_32(DBSC_DBTR(6), js2[js2_tras]);
+	mmio_write_32_test(DBSC_DBTR(6), js2[js2_tras]);
 
 	/* DBTR7.TRRD : tRRD */
-	mmio_write_32(DBSC_DBTR(7), (js2[js2_trrd] << 16) | js2[js2_trrd]);
+	mmio_write_32_test(DBSC_DBTR(7), (js2[js2_trrd] << 16) | js2[js2_trrd]);
 
 	/* DBTR8.TFAW : tFAW */
-	mmio_write_32(DBSC_DBTR(8), js2[js2_tfaw]);
+	mmio_write_32_test(DBSC_DBTR(8), js2[js2_tfaw]);
 
 	/* DBTR9.TRDPR : tRTP */
-	mmio_write_32(DBSC_DBTR(9), js2[js2_trtp]);
+	mmio_write_32_test(DBSC_DBTR(9), js2[js2_trtp]);
 
 	/* DBTR10.TWR : nWR */
-	mmio_write_32(DBSC_DBTR(10), js1[js1_ind].nwr);
+	mmio_write_32_test(DBSC_DBTR(10), js1[js1_ind].nwr);
 
 	/*
 	 * DBTR11.TRDWR : RL +  BL / 2 + Rounddown(tRPST) + PHY_ODTLoff -
 	 * 		  odtlon + tDQSCK - tODTon,min +
 	 * 		  PCB delay (out+in) + tPHY_ODToff
 	 */
-	mmio_write_32(DBSC_DBTR(11),
+	mmio_write_32_test(DBSC_DBTR(11),
 		      RL + (16 / 2) + 1 + 2 - js1[js1_ind].odtlon +
 		      js2[js2_tdqsck] - js2[js2_tODTon_min] +
 		      _f_scale(ddr_mbps, ddr_mbpsdiv, 1300, 0));
 
 	/* DBTR12.TWRRD : WL + 1 + BL/2 + tWTR */
 	data_l = WL + 1 + (16 / 2) + js2[js2_twtr];
-	mmio_write_32(DBSC_DBTR(12), (data_l << 16) | data_l);
+	mmio_write_32_test(DBSC_DBTR(12), (data_l << 16) | data_l);
 
 	/* DBTR13.TRFCAB : tRFCab */
-	mmio_write_32(DBSC_DBTR(13), (js2[js2_trfcab]));
+	mmio_write_32_test(DBSC_DBTR(13), (js2[js2_trfcab]));
 
 	/* DBTR14.TCKEHDLL,tCKEH : tCKEHCMD,tCKEHCMD */
-	mmio_write_32(DBSC_DBTR(14),
+	mmio_write_32_test(DBSC_DBTR(14),
 		      (js2[js2_tckehcmd] << 16) | (js2[js2_tckehcmd]));
 
 	/* DBTR15.TCKESR,TCKEL : tSR,tCKELPD */
-	mmio_write_32(DBSC_DBTR(15), (js2[js2_tsr] << 16) | (js2[js2_tckelpd]));
+	mmio_write_32_test(DBSC_DBTR(15), (js2[js2_tsr] << 16) | (js2[js2_tckelpd]));
 
 	/* DBTR16 */
 	/* WDQL : tphy_wrlat + tphy_wrdata */
@@ -2301,7 +2311,7 @@ static void dbsc_regset(void)
 	tmp[2] = RL + 16;
 	/* DQIENLTNCY : trdata_en */
 	tmp[3] = ddrtbl_getval(_cnf_DDR_PI_REGSET, _reg_PI_RDLAT_ADJ_F1) - 1;
-	mmio_write_32(DBSC_DBTR(16),
+	mmio_write_32_test(DBSC_DBTR(16),
 		      (tmp[3] << 24) | (tmp[2] << 16) | (tmp[1] << 8) | tmp[0]);
 
 	/* DBTR24 */
@@ -2321,22 +2331,22 @@ static void dbsc_regset(void)
 	} else {
 		tmp[3] = 6;
 	}
-	mmio_write_32(DBSC_DBTR(24),
+	mmio_write_32_test(DBSC_DBTR(24),
 		      (tmp[3] << 24) | (tmp[2] << 16) | (tmp[1] << 8) | tmp[0]);
 
 	/* DBTR17.TMODRD,TMOD,TRDMR: tMRR,tMRD,(0) */
-	mmio_write_32(DBSC_DBTR(17),
+	mmio_write_32_test(DBSC_DBTR(17),
 		      (js2[js2_tmrr] << 24) | (js2[js2_tmrd] << 16));
 
 	/* DBTR18.RODTL, RODTA, WODTL, WODTA : do not use in LPDDR4 */
-	mmio_write_32(DBSC_DBTR(18), 0);
+	mmio_write_32_test(DBSC_DBTR(18), 0);
 
 	/* DBTR19.TZQCL, TZQCS : do not use in LPDDR4 */
-	mmio_write_32(DBSC_DBTR(19), 0);
+	mmio_write_32_test(DBSC_DBTR(19), 0);
 
 	/* DBTR20.TXSDLL, TXS : tRFCab+tCKEHCMD */
 	data_l = js2[js2_trfcab] + js2[js2_tckehcmd];
-	mmio_write_32(DBSC_DBTR(20), (data_l << 16) | data_l);
+	mmio_write_32_test(DBSC_DBTR(20), (data_l << 16) | data_l);
 
 	/* DBTR21.TCCD */
 	/* DBTR23.TCCD */
@@ -2345,25 +2355,25 @@ static void dbsc_regset(void)
 	    !((prr_product == PRR_PRODUCT_H3) && (prr_cut <= PRR_PRODUCT_10))
 	    ) {
 		data_l = 8;
-		mmio_write_32(DBSC_DBTR(21), (data_l << 16) | data_l);
-		mmio_write_32(DBSC_DBTR(23), 0x00000002);
+		mmio_write_32_test(DBSC_DBTR(21), (data_l << 16) | data_l);
+		mmio_write_32_test(DBSC_DBTR(23), 0x00000002);
 	} else if (ddr_tccd <= 11) {
 		data_l = 11;
-		mmio_write_32(DBSC_DBTR(21), (data_l << 16) | data_l);
-		mmio_write_32(DBSC_DBTR(23), 0x00000000);
+		mmio_write_32_test(DBSC_DBTR(21), (data_l << 16) | data_l);
+		mmio_write_32_test(DBSC_DBTR(23), 0x00000000);
 	} else {
 		data_l = ddr_tccd;
-		mmio_write_32(DBSC_DBTR(21), (data_l << 16) | data_l);
-		mmio_write_32(DBSC_DBTR(23), 0x00000000);
+		mmio_write_32_test(DBSC_DBTR(21), (data_l << 16) | data_l);
+		mmio_write_32_test(DBSC_DBTR(23), 0x00000000);
 	}
 
 	/* DBTR22.ZQLAT : */
 	data_l = js2[js2_tzqcalns] * 100;	/*  1000 * 1000 ps */
 	data_l = (data_l << 16) | (js2[js2_tzqlat] + 24 + 20);
-	mmio_write_32(DBSC_DBTR(22), data_l);
+	mmio_write_32_test(DBSC_DBTR(22), data_l);
 
 	/* DBTR25 : do not use in LPDDR4 */
-	mmio_write_32(DBSC_DBTR(25), 0);
+	mmio_write_32_test(DBSC_DBTR(25), 0);
 
 	/* DBRNK : */
 	/*
@@ -2384,9 +2394,9 @@ static void dbsc_regset(void)
 		foreach_vch(ch) {
 			data_l2 = data_l2 | (data_l << (4 * ch));
 		}
-		mmio_write_32(DBSC_DBRNK(2 + i), data_l2);
+		mmio_write_32_test(DBSC_DBRNK(2 + i), data_l2);
 	}
-	mmio_write_32(DBSC_DBADJ0, 0x00000000);
+	mmio_write_32_test(DBSC_DBADJ0, 0x00000000);
 
 	/* timing registers for Scheduler */
 	/* SCFCTST0 */
@@ -2402,7 +2412,7 @@ static void dbsc_regset(void)
 		   js1[js1_ind].nwr) * 800 * ddr_mbpsdiv / ddr_mbps;
 	/* SCFCTST0 PRE-ACT */
 	tmp[0] = 1UL * js2[js2_trppb];
-	mmio_write_32(DBSC_SCFCTST0,
+	mmio_write_32_test(DBSC_SCFCTST0,
 		      (tmp[3] << 24) | (tmp[2] << 16) | (tmp[1] << 8) | tmp[0]);
 
 	/* SCFCTST1 */
@@ -2418,7 +2428,7 @@ static void dbsc_regset(void)
 	tmp[1] = 1UL * js2[js2_trcd] * 800 * ddr_mbpsdiv / ddr_mbps;
 	/* SCFCTST1 ASYNCOFS */
 	tmp[0] = 12;
-	mmio_write_32(DBSC_SCFCTST1,
+	mmio_write_32_test(DBSC_SCFCTST1,
 		      (tmp[3] << 24) | (tmp[2] << 16) | (tmp[1] << 8) | tmp[0]);
 
 	/* DBSCHRW1 */
@@ -2431,12 +2441,12 @@ static void dbsc_regset(void)
 		tmp[0] = data_l;
 
 	if ((prr_product == PRR_PRODUCT_M3) && (prr_cut < PRR_PRODUCT_30)) {
-		mmio_write_32(DBSC_DBSCHRW1, tmp[0]
+		mmio_write_32_test(DBSC_DBSCHRW1, tmp[0]
 			+ ((mmio_read_32(DBSC_DBTR(22)) & 0x0000FFFF)
 			* 400 * 2 * ddr_mbpsdiv + (ddr_mbps - 1)) /
 			ddr_mbps - 3);
 	} else {
-		mmio_write_32(DBSC_DBSCHRW1, tmp[0]
+		mmio_write_32_test(DBSC_DBSCHRW1, tmp[0]
 			+ ((mmio_read_32(DBSC_DBTR(22)) & 0x0000FFFF)
 			* 400 * 2 * ddr_mbpsdiv + (ddr_mbps - 1)) /
 			ddr_mbps);
@@ -2445,71 +2455,71 @@ static void dbsc_regset(void)
 	/* QOS and CAM */
 #ifdef ddr_qos_init_setting	/*  only for non qos_init */
 	/*wbkwait(0004), wbkmdhi(4,2),wbkmdlo(1,8) */
-	mmio_write_32(DBSC_DBCAM0CNF1, 0x00043218);
+	mmio_write_32_test(DBSC_DBCAM0CNF1, 0x00043218);
 	/*0(fillunit),8(dirtymax),4(dirtymin) */
-	mmio_write_32(DBSC_DBCAM0CNF2, 0x000000F4);
+	mmio_write_32_test(DBSC_DBCAM0CNF2, 0x000000F4);
 	/*stop_tolerance */
-	mmio_write_32(DBSC_DBSCHRW0, 0x22421111);
+	mmio_write_32_test(DBSC_DBSCHRW0, 0x22421111);
 	/*rd-wr/wr-rd toggle priority */
-	mmio_write_32(DBSC_SCFCTST2, 0x012F1123);
-	mmio_write_32(DBSC_DBSCHSZ0, 0x00000001);
-	mmio_write_32(DBSC_DBSCHCNT0, 0x000F0037);
+	mmio_write_32_test(DBSC_SCFCTST2, 0x012F1123);
+	mmio_write_32_test(DBSC_DBSCHSZ0, 0x00000001);
+	mmio_write_32_test(DBSC_DBSCHCNT0, 0x000F0037);
 
 	/* QoS Settings */
-	mmio_write_32(DBSC_DBSCHQOS00, 0x00000F00U);
-	mmio_write_32(DBSC_DBSCHQOS01, 0x00000B00U);
-	mmio_write_32(DBSC_DBSCHQOS02, 0x00000000U);
-	mmio_write_32(DBSC_DBSCHQOS03, 0x00000000U);
-	mmio_write_32(DBSC_DBSCHQOS40, 0x00000300U);
-	mmio_write_32(DBSC_DBSCHQOS41, 0x000002F0U);
-	mmio_write_32(DBSC_DBSCHQOS42, 0x00000200U);
-	mmio_write_32(DBSC_DBSCHQOS43, 0x00000100U);
-	mmio_write_32(DBSC_DBSCHQOS90, 0x00000100U);
-	mmio_write_32(DBSC_DBSCHQOS91, 0x000000F0U);
-	mmio_write_32(DBSC_DBSCHQOS92, 0x000000A0U);
-	mmio_write_32(DBSC_DBSCHQOS93, 0x00000040U);
-	mmio_write_32(DBSC_DBSCHQOS120, 0x00000040U);
-	mmio_write_32(DBSC_DBSCHQOS121, 0x00000030U);
-	mmio_write_32(DBSC_DBSCHQOS122, 0x00000020U);
-	mmio_write_32(DBSC_DBSCHQOS123, 0x00000010U);
-	mmio_write_32(DBSC_DBSCHQOS130, 0x00000100U);
-	mmio_write_32(DBSC_DBSCHQOS131, 0x000000F0U);
-	mmio_write_32(DBSC_DBSCHQOS132, 0x000000A0U);
-	mmio_write_32(DBSC_DBSCHQOS133, 0x00000040U);
-	mmio_write_32(DBSC_DBSCHQOS140, 0x000000C0U);
-	mmio_write_32(DBSC_DBSCHQOS141, 0x000000B0U);
-	mmio_write_32(DBSC_DBSCHQOS142, 0x00000080U);
-	mmio_write_32(DBSC_DBSCHQOS143, 0x00000040U);
-	mmio_write_32(DBSC_DBSCHQOS150, 0x00000040U);
-	mmio_write_32(DBSC_DBSCHQOS151, 0x00000030U);
-	mmio_write_32(DBSC_DBSCHQOS152, 0x00000020U);
-	mmio_write_32(DBSC_DBSCHQOS153, 0x00000010U);
+	mmio_write_32_test(DBSC_DBSCHQOS00, 0x00000F00U);
+	mmio_write_32_test(DBSC_DBSCHQOS01, 0x00000B00U);
+	mmio_write_32_test(DBSC_DBSCHQOS02, 0x00000000U);
+	mmio_write_32_test(DBSC_DBSCHQOS03, 0x00000000U);
+	mmio_write_32_test(DBSC_DBSCHQOS40, 0x00000300U);
+	mmio_write_32_test(DBSC_DBSCHQOS41, 0x000002F0U);
+	mmio_write_32_test(DBSC_DBSCHQOS42, 0x00000200U);
+	mmio_write_32_test(DBSC_DBSCHQOS43, 0x00000100U);
+	mmio_write_32_test(DBSC_DBSCHQOS90, 0x00000100U);
+	mmio_write_32_test(DBSC_DBSCHQOS91, 0x000000F0U);
+	mmio_write_32_test(DBSC_DBSCHQOS92, 0x000000A0U);
+	mmio_write_32_test(DBSC_DBSCHQOS93, 0x00000040U);
+	mmio_write_32_test(DBSC_DBSCHQOS120, 0x00000040U);
+	mmio_write_32_test(DBSC_DBSCHQOS121, 0x00000030U);
+	mmio_write_32_test(DBSC_DBSCHQOS122, 0x00000020U);
+	mmio_write_32_test(DBSC_DBSCHQOS123, 0x00000010U);
+	mmio_write_32_test(DBSC_DBSCHQOS130, 0x00000100U);
+	mmio_write_32_test(DBSC_DBSCHQOS131, 0x000000F0U);
+	mmio_write_32_test(DBSC_DBSCHQOS132, 0x000000A0U);
+	mmio_write_32_test(DBSC_DBSCHQOS133, 0x00000040U);
+	mmio_write_32_test(DBSC_DBSCHQOS140, 0x000000C0U);
+	mmio_write_32_test(DBSC_DBSCHQOS141, 0x000000B0U);
+	mmio_write_32_test(DBSC_DBSCHQOS142, 0x00000080U);
+	mmio_write_32_test(DBSC_DBSCHQOS143, 0x00000040U);
+	mmio_write_32_test(DBSC_DBSCHQOS150, 0x00000040U);
+	mmio_write_32_test(DBSC_DBSCHQOS151, 0x00000030U);
+	mmio_write_32_test(DBSC_DBSCHQOS152, 0x00000020U);
+	mmio_write_32_test(DBSC_DBSCHQOS153, 0x00000010U);
 
-	mmio_write_32(QOSCTRL_RAEN, 0x00000001U);
+	mmio_write_32_test(QOSCTRL_RAEN, 0x00000001U);
 #endif /* ddr_qos_init_setting */
 	/* H3 Ver.1.1 need to set monitor function */
 	if ((prr_product == PRR_PRODUCT_H3) && (prr_cut == PRR_PRODUCT_11)) {
-		mmio_write_32(DBSC_DBMONCONF4, 0x00700000);
+		mmio_write_32_test(DBSC_DBMONCONF4, 0x00700000);
 	}
 
 	if (prr_product == PRR_PRODUCT_H3) {
 		if (prr_cut == PRR_PRODUCT_10) {
 			/* resrdis, simple mode, sc off */
-			mmio_write_32(DBSC_DBBCAMDIS, 0x00000007);
+			mmio_write_32_test(DBSC_DBBCAMDIS, 0x00000007);
 		} else if (prr_cut == PRR_PRODUCT_11) {
 			/* resrdis, simple mode         */
-			mmio_write_32(DBSC_DBBCAMDIS, 0x00000005);
+			mmio_write_32_test(DBSC_DBBCAMDIS, 0x00000005);
 		} else if (prr_cut < PRR_PRODUCT_30) {
 			/* H3 Ver.2.0                   */
 			/* resrdis                      */
-			mmio_write_32(DBSC_DBBCAMDIS, 0x00000001);
+			mmio_write_32_test(DBSC_DBBCAMDIS, 0x00000001);
 		} else {	/* H3 Ver.3.0(include H3N)      */
 			/* exprespque                   */
-			mmio_write_32(DBSC_DBBCAMDIS, 0x00000010);
+			mmio_write_32_test(DBSC_DBBCAMDIS, 0x00000010);
 		}
 	} else {		/* M3-W/M3-N/V3H                */
 		/* resrdis                      */
-		mmio_write_32(DBSC_DBBCAMDIS, 0x00000001);
+		mmio_write_32_test(DBSC_DBBCAMDIS, 0x00000001);
 	}
 }
 
@@ -2541,23 +2551,23 @@ static void dbsc_regset_post(void)
 	if ((prr_product == PRR_PRODUCT_H3) && (prr_cut > PRR_PRODUCT_11)) {
 #if RCAR_DRAM_SPLIT == 2
 		if (board_cnf->phyvalid == 0x05) {
-			mmio_write_32(DBSC_DBTR(24),
+			mmio_write_32_test(DBSC_DBTR(24),
 				      (rdlat_max << 24) + (rdlat_min << 16) +
 				      mmio_read_32(DBSC_DBTR(24)));
 		} else {
-			mmio_write_32(DBSC_DBTR(24),
+			mmio_write_32_test(DBSC_DBTR(24),
 				      ((rdlat_max * 2 - rdlat_min + 4) << 24) +
 				      ((rdlat_min + 2) << 16) +
 				      mmio_read_32(DBSC_DBTR(24)));
 		}
 #else /*RCAR_DRAM_SPLIT == 2 */
-		mmio_write_32(DBSC_DBTR(24),
+		mmio_write_32_test(DBSC_DBTR(24),
 			      ((rdlat_max * 2 - rdlat_min + 4) << 24) +
 			      ((rdlat_min + 2) << 16) +
 			      mmio_read_32(DBSC_DBTR(24)));
 #endif /*RCAR_DRAM_SPLIT == 2 */
 	} else {
-		mmio_write_32(DBSC_DBTR(24),
+		mmio_write_32_test(DBSC_DBTR(24),
 			      ((rdlat_max + 2) << 24) +
 			      ((rdlat_max + 2) << 16) +
 			      mmio_read_32(DBSC_DBTR(24)));
@@ -2567,22 +2577,22 @@ static void dbsc_regset_post(void)
 	foreach_ech(ch) {
 		for (cs = 0; cs < CS_CNT; cs++) {
 			if (ddr_density[ch][cs] == 0xff) {
-				mmio_write_32(DBSC_DBMEMCONF(ch, cs), 0x00);
+				mmio_write_32_test(DBSC_DBMEMCONF(ch, cs), 0x00);
 			} else {
-				mmio_write_32(DBSC_DBMEMCONF(ch, cs),
+				mmio_write_32_test(DBSC_DBMEMCONF(ch, cs),
 					      DBMEMCONF_REGD(ddr_density[ch]
 							     [cs]));
 			}
 		}
-		mmio_write_32(DBSC_DBMEMCONF(ch, 2), 0x00000000);
-		mmio_write_32(DBSC_DBMEMCONF(ch, 3), 0x00000000);
+		mmio_write_32_test(DBSC_DBMEMCONF(ch, 2), 0x00000000);
+		mmio_write_32_test(DBSC_DBMEMCONF(ch, 3), 0x00000000);
 	}
 
-	mmio_write_32(DBSC_DBBUS0CNF1, 0x00000010);
+	mmio_write_32_test(DBSC_DBBUS0CNF1, 0x00000010);
 
 	/*set DBI */
 	if (board_cnf->dbi_en)
-		mmio_write_32(DBSC_DBDBICNT, 0x00000003);
+		mmio_write_32_test(DBSC_DBDBICNT, 0x00000003);
 
 	/* H3 Ver.2.0 or later/M3-N/V3H DBI wa */
 	if ((((prr_product == PRR_PRODUCT_H3) &&
@@ -2594,8 +2604,8 @@ static void dbsc_regset_post(void)
 
 	/*set REFCYCLE */
 	data_l = (get_refperiod()) * ddr_mbps / 2000 / ddr_mbpsdiv;
-	mmio_write_32(DBSC_DBRFCNF1, 0x00080000 | (data_l & 0x0000ffff));
-	mmio_write_32(DBSC_DBRFCNF2, 0x00010000 | DBSC_REFINTS);
+	mmio_write_32_test(DBSC_DBRFCNF1, 0x00080000 | (data_l & 0x0000ffff));
+	mmio_write_32_test(DBSC_DBRFCNF2, 0x00010000 | DBSC_REFINTS);
 
 #if RCAR_REWT_TRAINING != 0
 	/* Periodic-WriteDQ Training seeting */
@@ -2606,7 +2616,7 @@ static void dbsc_regset_post(void)
 		/* non : H3 Ver.1.x/M3-W Ver.1.0 not support */
 	} else {
 		/* H3 Ver.2.0 or later/M3-W Ver.1.1 or later/M3-N/V3H */
-		mmio_write_32(DBSC_DBDFIPMSTRCNF, 0x00000000);
+		mmio_write_32_test(DBSC_DBDFIPMSTRCNF, 0x00000000);
 
 		ddr_setval_ach_as(_reg_PHY_WDQLVL_PATT, 0x04);
 		ddr_setval_ach_as(_reg_PHY_WDQLVL_QTR_DLY_STEP, 0x0F);
@@ -2632,11 +2642,11 @@ static void dbsc_regset_post(void)
 
 		/* DFI_PHYMSTR_ACK , WTmode setting */
 		/* DFI_PHYMSTR_ACK: WTmode =b'01 */
-		mmio_write_32(DBSC_DBDFIPMSTRCNF, 0x00000011);
+		mmio_write_32_test(DBSC_DBDFIPMSTRCNF, 0x00000011);
 	}
 #endif /* RCAR_REWT_TRAINING */
 	/* periodic dram zqcal enable */
-	mmio_write_32(DBSC_DBCALCNF, 0x01000010);
+	mmio_write_32_test(DBSC_DBCALCNF, 0x01000010);
 
 	/* periodic phy ctrl update enable */
 	if (((prr_product == PRR_PRODUCT_H3) &&
@@ -2648,11 +2658,11 @@ static void dbsc_regset_post(void)
 #if RCAR_DRAM_SPLIT == 2
 		if ((prr_product == PRR_PRODUCT_H3) &&
 		    (board_cnf->phyvalid == 0x05))
-			mmio_write_32(DBSC_DBDFICUPDCNF, 0x2a240001);
+			mmio_write_32_test(DBSC_DBDFICUPDCNF, 0x2a240001);
 		else
-			mmio_write_32(DBSC_DBDFICUPDCNF, 0x28240001);
+			mmio_write_32_test(DBSC_DBDFICUPDCNF, 0x28240001);
 #else /* RCAR_DRAM_SPLIT == 2 */
-		mmio_write_32(DBSC_DBDFICUPDCNF, 0x28240001);
+		mmio_write_32_test(DBSC_DBDFICUPDCNF, 0x28240001);
 #endif /* RCAR_DRAM_SPLIT == 2 */
 	}
 
@@ -2671,7 +2681,7 @@ static void dbsc_regset_post(void)
 #endif /* DDR_BACKUPMODE */
 
 	/* set Auto Refresh */
-	mmio_write_32(DBSC_DBRFEN, 0x00000001);
+	mmio_write_32_test(DBSC_DBRFEN, 0x00000001);
 
 #if RCAR_REWT_TRAINING != 0
 	/* Periodic WriteDQ Traning */
@@ -2687,7 +2697,7 @@ static void dbsc_regset_post(void)
 #endif /* RCAR_REWT_TRAINING */
 
 	/* dram access enable */
-	mmio_write_32(DBSC_DBACEN, 0x00000001);
+	mmio_write_32_test(DBSC_DBACEN, 0x00000001);
 
 	MSG_LF(__func__ "(done)");
 }
@@ -2716,7 +2726,7 @@ static uint32_t dfi_init_start(void)
 		 * init_start =0
 		 */
 		foreach_vch(ch)
-		    mmio_write_32(DBSC_DBDFICNT(ch), 0x00000F10);
+		    mmio_write_32_test(DBSC_DBDFICNT(ch), 0x00000F10);
 		dsb_sev();
 
 		/* dbdficnt0:
@@ -2726,7 +2736,7 @@ static uint32_t dfi_init_start(void)
 		 * init_start =1
 		 */
 		foreach_vch(ch)
-		    mmio_write_32(DBSC_DBDFICNT(ch), 0x00000F11);
+		    mmio_write_32_test(DBSC_DBDFICNT(ch), 0x00000F11);
 		dsb_sev();
 
 	} else {
@@ -2737,7 +2747,7 @@ static uint32_t dfi_init_start(void)
 
 	/* dll_rst negate */
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBPDCNT3(ch), 0x0000CF01);
+	    mmio_write_32_test(DBSC_DBPDCNT3(ch), 0x0000CF01);
 	dsb_sev();
 
 	/* wait init_complete */
@@ -2767,7 +2777,7 @@ static uint32_t dfi_init_start(void)
 	 * init_start =0
 	 */
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBDFICNT(ch), 0x00000010);
+	    mmio_write_32_test(DBSC_DBDFICNT(ch), 0x00000010);
 	dsb_sev();
 
 	return 0;
@@ -3009,7 +3019,7 @@ static inline void set_freqchgack(uint32_t assert)
 		data_l = 0x00000000;
 
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBPDCNT2(ch), data_l);
+	    mmio_write_32_test(DBSC_DBPDCNT2(ch), data_l);
 }
 
 static inline void set_dfifrequency(uint32_t freq)
@@ -3089,7 +3099,7 @@ static uint32_t pi_training_go(void)
 	    ddr_getval(ch, _reg_PI_INT_STATUS);
 
 	/* set dfi_phymstr_ack = 1 */
-	mmio_write_32(DBSC_DBDFIPMSTRCNF, 0x00000001);
+	mmio_write_32_test(DBSC_DBDFIPMSTRCNF, 0x00000001);
 	dsb_sev();
 
 	/* wait pi_int_status[0] */
@@ -3170,7 +3180,7 @@ static uint32_t init_ddr(void)
 	/* unlock phy */
 	/* Unlock DDRPHY register(AGAIN) */
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBPDLK(ch), 0x0000A55A);
+	    mmio_write_32_test(DBSC_DBPDLK(ch), 0x0000A55A);
 	dsb_sev();
 
 	if ((((prr_product == PRR_PRODUCT_H3) &&
@@ -3191,7 +3201,7 @@ static uint32_t init_ddr(void)
 
 	/* dfi_reset assert */
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBPDCNT0(ch), 0x01);
+	    mmio_write_32_test(DBSC_DBPDCNT0(ch), 0x01);
 	dsb_sev();
 
 	/* dbsc register set */
@@ -3200,7 +3210,7 @@ static uint32_t init_ddr(void)
 
 	/* dfi_reset negate */
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBPDCNT0(ch), 0x00);
+	    mmio_write_32_test(DBSC_DBPDCNT0(ch), 0x00);
 	dsb_sev();
 
 	/* dfi_init_start (start ddrphy) */
@@ -3271,7 +3281,7 @@ static uint32_t init_ddr(void)
 	/* 220920 variable check */
 	printf("Thermal sensor setting\n");
 	printf("data_l= %x\n", data_l);
-	mmio_write_32(THS1_THCTR, data_l);
+	mmio_write_32_test(THS1_THCTR, data_l);
 
 	/* LPDDR4 MODE */
 	change_lpddr4_en(1);
@@ -3637,7 +3647,7 @@ static uint32_t wdqdm_man1(void)
 				else
 					k = high_dq[ch];
 				data_l |= (k << 16);
-				mmio_write_32(DBSC_DBDFICNT(ch), data_l);
+				mmio_write_32_test(DBSC_DBDFICNT(ch), data_l);
 				ddr_setval(ch, _reg_PI_WDQLVL_RESP_MASK, k);
 			}
 		}
@@ -3691,7 +3701,7 @@ err_exit:
 		foreach_vch(ch) {
 			data_l = mmio_read_32(DBSC_DBDFICNT(ch));
 			data_l &= ~(0x00ffU << 16);
-			mmio_write_32(DBSC_DBDFICNT(ch), data_l);
+			mmio_write_32_test(DBSC_DBDFICNT(ch), data_l);
 			ddr_setval(ch, _reg_PI_WDQLVL_RESP_MASK, 0x00);
 		}
 	}
@@ -4345,7 +4355,7 @@ int32_t rcar_dram_init(void)
 	else
 		data_l = data_l | 0x00000001U;
 
-	mmio_write_32(THS1_THCTR, data_l);
+	mmio_write_32_test(THS1_THCTR, data_l);
 
 	/* Judge product and cut */
 #ifdef RCAR_DDR_FIXED_LSI_TYPE
@@ -4386,7 +4396,7 @@ int32_t rcar_dram_init(void)
 	    ((prr_product == PRR_PRODUCT_M3) && (prr_cut < PRR_PRODUCT_30))) {
 		/* non : H3 Ver.1.x/M3-W Ver.1.x not support */
 	} else {
-		mmio_write_32(DBSC_DBSYSCNT0, 0x00001234);
+		mmio_write_32_test(DBSC_DBSYSCNT0, 0x00001234);
 	}
 
 	/* Judge board type */
@@ -4401,7 +4411,7 @@ int32_t rcar_dram_init(void)
 #if RCAR_DRAM_SPLIT == 2
 	/* H3(Test for future H3-N): Swap ch2 and ch1 for 2ch-split */
 	if ((prr_product == PRR_PRODUCT_H3) && (board_cnf->phyvalid == 0x05)) {
-		mmio_write_32(DBSC_DBMEMSWAPCONF0, 0x00000006);
+		mmio_write_32_test(DBSC_DBMEMSWAPCONF0, 0x00000006);
 		ddr_phyvalid = 0x03;
 	} else {
 		ddr_phyvalid = board_cnf->phyvalid;
@@ -4503,12 +4513,12 @@ int32_t rcar_dram_init(void)
 	}
 
 	foreach_vch(ch)
-	    mmio_write_32(DBSC_DBPDLK(ch), 0x00000000);
+	    mmio_write_32_test(DBSC_DBPDLK(ch), 0x00000000);
 	if (((prr_product == PRR_PRODUCT_H3) && (prr_cut <= PRR_PRODUCT_11)) ||
 	    ((prr_product == PRR_PRODUCT_M3) && (prr_cut < PRR_PRODUCT_30))) {
 		/* non : H3 Ver.1.x/M3-W Ver.1.x not support */
 	} else {
-		mmio_write_32(DBSC_DBSYSCNT0, 0x00000000);
+		mmio_write_32_test(DBSC_DBSYSCNT0, 0x00000000);
 	}
 
 	if (failcount == 0) {
