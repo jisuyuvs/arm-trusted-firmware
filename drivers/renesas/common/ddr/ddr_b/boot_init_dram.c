@@ -598,13 +598,13 @@ static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata)
 
 	if ((prr_product != PRR_PRODUCT_M3N) &&
 	    (prr_product != PRR_PRODUCT_V3H)) {
-		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd);
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
 		dsb_sev();
 		for (loop = 0; loop < loop_max; loop++) {
 			val = mmio_read_32(DBSC_DBPDRGA(phyno));
 			dsb_sev();
 		}
-		mmio_write_32_test(DBSC_DBPDRGD(phyno), regdata);
+		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
 		dsb_sev();
 
 		for (loop = 0; loop < loop_max; loop++) {
@@ -612,7 +612,7 @@ static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata)
 			dsb_sev();
 		}
 	} else {
-		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd);
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
 		dsb_sev();
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
@@ -620,21 +620,21 @@ static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata)
 		};
 		dsb_sev();
 
-		mmio_write_32_test(DBSC_DBPDRGD(phyno), regdata);
+		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
 		dsb_sev();
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) !=
 		       (regadd | 0x00008000)) {
 			dsb_sev();
 		};
-		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
 			dsb_sev();
 		};
 		dsb_sev();
 
-		mmio_write_32_test(DBSC_DBPDRGA(phyno), regadd);
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
 	}
 	(void)val;
 }
@@ -648,12 +648,12 @@ static void reg_ddrphy_write_a(uint32_t regadd, uint32_t regdata)
 	if ((prr_product != PRR_PRODUCT_M3N) &&
 	    (prr_product != PRR_PRODUCT_V3H)) {
 		foreach_vch(ch) {
-			mmio_write_32_test(DBSC_DBPDRGA(ch), regadd);
+			mmio_write_32(DBSC_DBPDRGA(ch), regadd);
 			dsb_sev();
 		}
 
 		foreach_vch(ch) {
-			mmio_write_32_test(DBSC_DBPDRGD(ch), regdata);
+			mmio_write_32(DBSC_DBPDRGD(ch), regdata);
 			dsb_sev();
 		}
 
