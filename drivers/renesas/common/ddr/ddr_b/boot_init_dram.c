@@ -343,7 +343,7 @@ static uint32_t wdqdm_ana1(uint32_t ch, uint32_t ddr_csn);
 /* 220920 variable check */
 static inline void mmio_write_32_test(uintptr_t addr, uint32_t value)
 {
-	printf("addr: %x, value: %x\n", addr, value);
+	printf("addr: %lx, value: %x\n", addr, value);
 	*(volatile uint32_t*)addr = value;
 }
 
