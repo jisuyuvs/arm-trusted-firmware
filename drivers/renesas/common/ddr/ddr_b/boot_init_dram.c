@@ -252,11 +252,15 @@ static inline uint32_t ddr_regdef_adr(uint32_t _regdef);
 static inline uint32_t ddr_regdef_lsb(uint32_t _regdef);
 static void ddr_setval_s(uint32_t ch, uint32_t slice, uint32_t _regdef,
 			 uint32_t val);
+/* 220920 variable check */
+static void ddr_setval_s_check(uint32_t ch, uint32_t slice, uint32_t _regdef, uint32_t val);
 static uint32_t ddr_getval_s(uint32_t ch, uint32_t slice, uint32_t _regdef);
 static void ddr_setval(uint32_t ch, uint32_t regdef, uint32_t val);
 /* 220920 variable check */
 /* static void ddr_setval_check(uint32_t ch, uint32_t regdef, uint32_t val); */
 static void ddr_setval_ach_s(uint32_t slice, uint32_t regdef, uint32_t val);
+/* 220920 variable check */
+static void ddr_setval_ach_s_check(uint32_t slice, uint32_t regdef, uint32_t val);
 static void ddr_setval_ach(uint32_t regdef, uint32_t val);
 static void ddr_setval_ach_as(uint32_t regdef, uint32_t val);
 /* 220920 variable check */
@@ -817,6 +821,31 @@ static void ddr_setval_s(uint32_t ch, uint32_t slice, uint32_t _regdef,
 	reg_ddrphy_write(ch, adr, tmp);
 }
 
+/* 220920 variable check */
+static void ddr_setval_s_check(uint32_t ch, uint32_t slice, uint32_t _regdef,
+			 uint32_t val)
+{
+	uint32_t adr;
+	uint32_t lsb;
+	uint32_t len;
+	uint32_t msk;
+	uint32_t tmp;
+	uint32_t regdef;
+
+	regdef = ddr_regdef(_regdef);
+	adr = DDR_REGDEF_ADR(regdef) + 0x80 * slice;
+	len = DDR_REGDEF_LEN(regdef);
+	lsb = DDR_REGDEF_LSB(regdef);
+	if (len == 0x20)
+		msk = 0xffffffff;
+	else
+		msk = ((1U << len) - 1) << lsb;
+
+	tmp = reg_ddrphy_read(ch, adr);
+	tmp = (tmp & (~msk)) | ((val << lsb) & msk);
+	reg_ddrphy_write_check(ch, adr, tmp);
+}
+
 static uint32_t ddr_getval_s(uint32_t ch, uint32_t slice, uint32_t _regdef)
 {
 	uint32_t adr;
@@ -887,6 +916,15 @@ static void ddr_setval_ach_s(uint32_t slice, uint32_t regdef, uint32_t val)
 	    ddr_setval_s(ch, slice, regdef, val);
 }
 
+/* 220920 variable check */
+static void ddr_setval_ach_s_check(uint32_t slice, uint32_t regdef, uint32_t val)
+{
+	uint32_t ch;
+
+	foreach_vch(ch)
+	    ddr_setval_s_check(ch, slice, regdef, val);
+}
+
 static void ddr_setval_ach(uint32_t regdef, uint32_t val)
 {
 	ddr_setval_ach_s(0, regdef, val);
@@ -908,7 +946,7 @@ static void ddr_setval_ach_as_check(uint32_t regdef, uint32_t val)
 	/* 220920 variable check */
 	for (slice = 0; slice < SLICE_CNT; slice++)
 	{
-		ddr_setval_ach_s(slice, regdef, val);
+		ddr_setval_ach_s_check(slice, regdef, val);
 		printf("slice: %x, regdef: %x , val: %x\n", slice, regdef, val);
 	}
 }
