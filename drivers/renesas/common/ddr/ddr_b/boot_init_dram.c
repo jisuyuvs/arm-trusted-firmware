@@ -699,7 +699,7 @@ static void reg_ddrphy_write_a_check(uint32_t regadd, uint32_t regdata)
 			dsb_sev();
 		}
 		(void)val;
-		printf("val: %x\n", val);
+		printf("val: %c\n", val);
 	} else {
 		foreach_vch(ch) {
 			reg_ddrphy_write(ch, regadd, regdata);
