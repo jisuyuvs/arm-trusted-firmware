@@ -697,9 +697,9 @@ static void reg_ddrphy_write_a_check(uint32_t regadd, uint32_t regdata)
 		for (loop = 0; loop < loop_max; loop++) {
 			val = mmio_read_32(DBSC_DBPDRGD(0));
 			dsb_sev();
+			printf("val: %x\n", val);
 		}
 		(void)val;
-		printf("val: %c\n", val);
 	} else {
 		foreach_vch(ch) {
 			reg_ddrphy_write(ch, regadd, regdata);
