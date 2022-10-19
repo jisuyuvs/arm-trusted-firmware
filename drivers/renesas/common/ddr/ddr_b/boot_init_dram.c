@@ -907,8 +907,10 @@ static void ddr_setval_ach_as_check(uint32_t regdef, uint32_t val)
 
 	/* 220920 variable check */
 	for (slice = 0; slice < SLICE_CNT; slice++)
+	{
 		ddr_setval_ach_s(slice, regdef, val);
-		printf("slice: %c, regdef: %x , val: %x\n", slice, regdef, val);
+		printf("slice: %x, regdef: %x , val: %x\n", slice, regdef, val);
+	}
 }
 
 static uint32_t ddr_getval(uint32_t ch, uint32_t regdef)
