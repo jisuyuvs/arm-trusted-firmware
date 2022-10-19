@@ -243,6 +243,8 @@ static void send_dbcmd(uint32_t cmd);
 static uint32_t reg_ddrphy_read(uint32_t phyno, uint32_t regadd);
 static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata);
 static void reg_ddrphy_write_a(uint32_t regadd, uint32_t regdata);
+/* 220920 variable check */
+static void reg_ddrphy_write_a_check(uint32_t regadd, uint32_t regdata);
 static inline uint32_t ddr_regdef(uint32_t _regdef);
 static inline uint32_t ddr_regdef_adr(uint32_t _regdef);
 static inline uint32_t ddr_regdef_lsb(uint32_t _regdef);
@@ -666,6 +668,43 @@ static void reg_ddrphy_write_a(uint32_t regadd, uint32_t regdata)
 		foreach_vch(ch) {
 			reg_ddrphy_write(ch, regadd, regdata);
 			dsb_sev();
+		}
+	}
+}
+/* 220920 variable check */
+static void reg_ddrphy_write_a_check(uint32_t regadd, uint32_t regdata)
+{
+	uint32_t ch;
+	uint32_t val;
+	uint32_t loop;
+
+	/* 220920 variable check */
+	printf("reg_ddrphy_write_a_check\n");
+	if ((prr_product != PRR_PRODUCT_M3N) &&
+	    (prr_product != PRR_PRODUCT_V3H)) {
+		foreach_vch(ch) {
+			mmio_write_32(DBSC_DBPDRGA(ch), regadd);
+			dsb_sev();
+			printf("regadd: %x\n", regadd);
+		}
+
+		foreach_vch(ch) {
+			mmio_write_32(DBSC_DBPDRGD(ch), regdata);
+			dsb_sev();
+			printf("regdata: %x\n", regdata);
+		}
+
+		for (loop = 0; loop < loop_max; loop++) {
+			val = mmio_read_32(DBSC_DBPDRGD(0));
+			dsb_sev();
+		}
+		(void)val;
+		printf("val: %x\n", val);
+	} else {
+		foreach_vch(ch) {
+			reg_ddrphy_write(ch, regadd, regdata);
+			dsb_sev();
+			printf("ch: %x, regadd: %x, regdata: %x\n", ch, regadd, regdata);
 		}
 	}
 }
@@ -2971,10 +3010,6 @@ static void ddr_register_set(void)
 
 	/* MR13, fspwp */
 	send_dbcmd(0x0e840d08);
-
-	/* 220920 variable check */
-	mmio_write_32(DBSC_DBDFIPMSTRCNF, 0x00000001);
-	dsb_sev();
 }
 
 /* Training handshake functions */
@@ -3125,20 +3160,13 @@ static uint32_t pi_training_go(void)
 			}
 		}
 
-		/* 220920 variable check */
-		printf("frqchg_req: %x\n", frqchg_req);
-		printf("cur_frq: %x\n", cur_frq);
 		if (frqchg_req) {
 			if (cur_frq) {
 				/* Low frequency */
-				/* 220920 variable check */
-				printf("Low frequency, pll3_freq(0)\n");
 				flag = pll3_freq(0);
 				cur_frq = 0;
 			} else {
 				/* High frequency */
-				/* 220920 variable check */
-				printf("High frequency, pll3_freq(1)\n");
 				flag = pll3_freq(1);
 				cur_frq = 1;
 			}
@@ -3305,7 +3333,7 @@ static uint32_t init_ddr(void)
 	}
 
 	/* exec pi_training */
-	reg_ddrphy_write_a(ddr_regdef_adr(_reg_PHY_FREQ_SEL_MULTICAST_EN),
+	reg_ddrphy_write_a_check(ddr_regdef_adr(_reg_PHY_FREQ_SEL_MULTICAST_EN),
 			   BIT(ddr_regdef_lsb(_reg_PHY_FREQ_SEL_MULTICAST_EN)));
 	ddr_setval_ach_as(_reg_PHY_PER_CS_TRAINING_MULTICAST_EN, 0x00);
 
