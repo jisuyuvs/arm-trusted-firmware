@@ -2971,6 +2971,10 @@ static void ddr_register_set(void)
 
 	/* MR13, fspwp */
 	send_dbcmd(0x0e840d08);
+
+	/* 220920 variable check */
+	mmio_write_32(DBSC_DBDFIPMSTRCNF, 0x00000001);
+	dsb_sev();
 }
 
 /* Training handshake functions */
