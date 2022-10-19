@@ -3007,6 +3007,13 @@ static void ddr_register_set(void)
 		/* ZQLAT */
 		send_dbcmd(0x0d840051);
 	}
+	/* 220920 variable check */
+	foreach_vch(ch) {
+		mmio_write_32(DBSC_DBPDRGA(ch), 1665); /* 1665=0x0381 */
+		dsb_sev();
+		mmio_write_32(DBSC_DBPDRGD(ch), 256); /* 256=0x100 */
+		dsb_sev();
+	}
 
 	/* MR13, fspwp */
 	send_dbcmd(0x0e840d08);
