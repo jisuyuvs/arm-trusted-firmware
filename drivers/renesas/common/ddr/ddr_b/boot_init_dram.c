@@ -3121,6 +3121,9 @@ static uint32_t pi_training_go(void)
 			}
 		}
 
+		/* 220920 variable check */
+		printf("frqchg_req: %x\n", frqchg_req);
+		printf("cur_frq: %x\n", cur_frq);
 		if (frqchg_req) {
 			if (cur_frq) {
 				/* Low frequency */
