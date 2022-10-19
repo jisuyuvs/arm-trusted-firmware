@@ -242,6 +242,8 @@ static void wait_dbcmd(void);
 static void send_dbcmd(uint32_t cmd);
 static uint32_t reg_ddrphy_read(uint32_t phyno, uint32_t regadd);
 static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata);
+/* 220920 variable check */
+static void reg_ddrphy_write_check(uint32_t phyno, uint32_t regadd, uint32_t regdata);
 static void reg_ddrphy_write_a(uint32_t regadd, uint32_t regdata);
 /* 220920 variable check */
 static void reg_ddrphy_write_a_check(uint32_t regadd, uint32_t regdata);
@@ -257,6 +259,8 @@ static void ddr_setval(uint32_t ch, uint32_t regdef, uint32_t val);
 static void ddr_setval_ach_s(uint32_t slice, uint32_t regdef, uint32_t val);
 static void ddr_setval_ach(uint32_t regdef, uint32_t val);
 static void ddr_setval_ach_as(uint32_t regdef, uint32_t val);
+/* 220920 variable check */
+static void ddr_setval_ach_as_check(uint32_t regdef, uint32_t val);
 static uint32_t ddr_getval(uint32_t ch, uint32_t regdef);
 /* 220920 variable check */
 /* static uint32_t ddr_getval_check(uint32_t ch, uint32_t regdef); */
@@ -640,6 +644,61 @@ static void reg_ddrphy_write(uint32_t phyno, uint32_t regadd, uint32_t regdata)
 	}
 	(void)val;
 }
+/* 220920 variable check */
+static void reg_ddrphy_write_check(uint32_t phyno, uint32_t regadd, uint32_t regdata)
+{
+	uint32_t val;
+	uint32_t loop;
+
+	printf("reg_ddrphy_write_check\n");
+	if ((prr_product != PRR_PRODUCT_M3N) &&
+	    (prr_product != PRR_PRODUCT_V3H)) {
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
+		printf("DBSC_DBPDRGA(%c), regadd: %x\n",phyno,regadd);
+		dsb_sev();
+		for (loop = 0; loop < loop_max; loop++) {
+			val = mmio_read_32(DBSC_DBPDRGA(phyno));
+			dsb_sev();
+		}
+		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
+		printf("DBSC_DBPDRGD(%c), regdata: %x\n",phyno,regdata);
+		dsb_sev();
+
+		for (loop = 0; loop < loop_max; loop++) {
+			val = mmio_read_32(DBSC_DBPDRGD(phyno));
+			dsb_sev();
+		}
+	} else {
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
+		printf("DBSC_DBPDRGA(%c), regadd: %x\n",phyno,regadd);
+		dsb_sev();
+
+		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
+			dsb_sev();
+		};
+		dsb_sev();
+
+		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
+		printf("DBSC_DBPDRGD(%c), regdata: %x\n",phyno,regdata);
+		dsb_sev();
+
+		while (mmio_read_32(DBSC_DBPDRGA(phyno)) !=
+		       (regadd | 0x00008000)) {
+			dsb_sev();
+		};
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
+		printf("DBSC_DBPDRGA(%c), regadd: %x\n",phyno,regadd);
+
+		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
+			dsb_sev();
+		};
+		dsb_sev();
+
+		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
+		printf("DBSC_DBPDRGA(%c), regadd: %x\n",phyno,regadd);
+	}
+	(void)val;
+}
 
 static void reg_ddrphy_write_a(uint32_t regadd, uint32_t regdata)
 {
@@ -702,7 +761,7 @@ static void reg_ddrphy_write_a_check(uint32_t regadd, uint32_t regdata)
 		(void)val;
 	} else {
 		foreach_vch(ch) {
-			reg_ddrphy_write(ch, regadd, regdata);
+			reg_ddrphy_write_check(ch, regadd, regdata);
 			dsb_sev();
 			printf("ch: %x, regadd: %x, regdata: %x\n", ch, regadd, regdata);
 		}
@@ -839,6 +898,17 @@ static void ddr_setval_ach_as(uint32_t regdef, uint32_t val)
 
 	for (slice = 0; slice < SLICE_CNT; slice++)
 		ddr_setval_ach_s(slice, regdef, val);
+}
+
+/* 220920 variable check */
+static void ddr_setval_ach_as_check(uint32_t regdef, uint32_t val)
+{
+	uint32_t slice;
+
+	/* 220920 variable check */
+	for (slice = 0; slice < SLICE_CNT; slice++)
+		ddr_setval_ach_s(slice, regdef, val);
+		printf("slice: %x, regdef: %x , val: %x\n", slice, regdef, val);
 }
 
 static uint32_t ddr_getval(uint32_t ch, uint32_t regdef)
@@ -3007,15 +3077,7 @@ static void ddr_register_set(void)
 		/* ZQLAT */
 		send_dbcmd(0x0d840051);
 	}
-	/* 220920 variable check */
-	uint32_t ch;
-	foreach_vch(ch) {
-		mmio_write_32(DBSC_DBPDRGA(ch), 1665); /* 1665=0x0381 */
-		dsb_sev();
-		mmio_write_32(DBSC_DBPDRGD(ch), 256); /* 256=0x100 */
-		dsb_sev();
-	}
-
+	
 	/* MR13, fspwp */
 	send_dbcmd(0x0e840d08);
 }
@@ -3343,10 +3405,10 @@ static uint32_t init_ddr(void)
 	/* exec pi_training */
 	reg_ddrphy_write_a_check(ddr_regdef_adr(_reg_PHY_FREQ_SEL_MULTICAST_EN),
 			   BIT(ddr_regdef_lsb(_reg_PHY_FREQ_SEL_MULTICAST_EN)));
-	ddr_setval_ach_as(_reg_PHY_PER_CS_TRAINING_MULTICAST_EN, 0x00);
+	ddr_setval_ach_as_check(_reg_PHY_PER_CS_TRAINING_MULTICAST_EN, 0x00);
 
 	if ((prr_product == PRR_PRODUCT_H3) && (prr_cut <= PRR_PRODUCT_11)) {
-		ddr_setval_ach_as(_reg_PHY_PER_CS_TRAINING_EN, 0x01);
+		ddr_setval_ach_as_check(_reg_PHY_PER_CS_TRAINING_EN, 0x01);
 	} else {
 		foreach_vch(ch) {
 			for (slice = 0; slice < SLICE_CNT; slice++) {
