@@ -3008,6 +3008,7 @@ static void ddr_register_set(void)
 		send_dbcmd(0x0d840051);
 	}
 	/* 220920 variable check */
+	uint32_t ch;
 	foreach_vch(ch) {
 		mmio_write_32(DBSC_DBPDRGA(ch), 1665); /* 1665=0x0381 */
 		dsb_sev();
