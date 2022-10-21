@@ -658,14 +658,14 @@ static void reg_ddrphy_write_check(uint32_t phyno, uint32_t regadd, uint32_t reg
 	if ((prr_product != PRR_PRODUCT_M3N) &&
 	    (prr_product != PRR_PRODUCT_V3H)) {
 		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
-		printf("DBSC_DBPDRGA%c, regadd: %x\n",phyno,regadd);
+		printf("DBSC_DBPDRGA(%x), regadd: %x\n",phyno,regadd);
 		dsb_sev();
 		for (loop = 0; loop < loop_max; loop++) {
 			val = mmio_read_32(DBSC_DBPDRGA(phyno));
 			dsb_sev();
 		}
 		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
-		printf("DBSC_DBPDRGD%c, regdata: %x\n",phyno,regdata);
+		printf("DBSC_DBPDRGD(%x), regdata: %x\n",phyno,regdata);
 		dsb_sev();
 
 		for (loop = 0; loop < loop_max; loop++) {
@@ -674,7 +674,7 @@ static void reg_ddrphy_write_check(uint32_t phyno, uint32_t regadd, uint32_t reg
 		}
 	} else {
 		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
-		printf("DBSC_DBPDRGA%c, regadd: %x\n",phyno,regadd);
+		printf("DBSC_DBPDRGA(%x), regadd: %x\n",phyno,regadd);
 		dsb_sev();
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
@@ -683,7 +683,7 @@ static void reg_ddrphy_write_check(uint32_t phyno, uint32_t regadd, uint32_t reg
 		dsb_sev();
 
 		mmio_write_32(DBSC_DBPDRGD(phyno), regdata);
-		printf("DBSC_DBPDRGD%c, regdata: %x\n",phyno,regdata);
+		printf("DBSC_DBPDRGD(%x), regdata: %x\n",phyno,regdata);
 		dsb_sev();
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) !=
@@ -691,7 +691,7 @@ static void reg_ddrphy_write_check(uint32_t phyno, uint32_t regadd, uint32_t reg
 			dsb_sev();
 		};
 		mmio_write_32(DBSC_DBPDRGA(phyno), regadd | 0x00008000);
-		printf("DBSC_DBPDRGA%c, regadd: %x\n",phyno,regadd);
+		printf("DBSC_DBPDRGA(%x), regadd: %x\n",phyno,regadd);
 
 		while (mmio_read_32(DBSC_DBPDRGA(phyno)) != regadd) {
 			dsb_sev();
@@ -699,7 +699,7 @@ static void reg_ddrphy_write_check(uint32_t phyno, uint32_t regadd, uint32_t reg
 		dsb_sev();
 
 		mmio_write_32(DBSC_DBPDRGA(phyno), regadd);
-		printf("DBSC_DBPDRGA%c, regadd: %x\n",phyno,regadd);
+		printf("DBSC_DBPDRGA(%x), regadd: %x\n",phyno,regadd);
 	}
 	(void)val;
 }
